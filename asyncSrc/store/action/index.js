@@ -1,4 +1,5 @@
 import fetch from 'cross-fetch';
+import { stat } from 'fs';
  
 export const REQUEST_POSTS  = 'REQUEST_POSTS'
 export const RECEIVE_POSTS = 'RECEIVE_POSTS'
@@ -40,5 +41,22 @@ export function fetchPosts(subreddit){
     return fetch(`https://www.reddit.com/r/${subreddit}.json`)
     .then(response => response.data)
     .then(json => dispatch(receivePosts(subreddit,json)))
+  }
+}
+export function shouldFetchPosts(state,subreddit){
+  const posts = state.postsBySubreddit[subreddit]
+  if(!posts){
+    return true
+  }else if(posts.isFetching){
+    return false
+  }else{
+    return posts.didInvalidate
+  }
+}
+
+export function fetchPostsIfNeeds(subreddit){
+  return(dispatch,getState)=>{
+    if(shouldFetchPosts(getState(),subreddit))
+      return dispatch(fetchPosts(subreddit))
   }
 }
