@@ -4,8 +4,8 @@ import { connect } from 'react-redux'
 import Picker from '../conponents/Picker'
 import Posts from '../conponents/Posts'
 import {
-  fetchPosts,
-  shouldFetchPosts,
+  selectSubreddit,
+  invalidateSubreddit,
   fetchPostsIfNeeds
 } from '../store/action'
 
@@ -20,8 +20,8 @@ class AsyncApp extends Component {
     dispatch(fetchPostsIfNeeds(selectedSubreddit))
   }
   componentWillReceiveProps(nextProps){
-    if(nextProps.selectedSubreddit != this.state.selectedSubreddit){
-      const {dispatch,selectedSubreddit} = nextProps
+    if (nextProps.selectedSubreddit !== this.props.selectedSubreddit) {
+      const { dispatch, selectedSubreddit } = nextProps
       dispatch(fetchPostsIfNeeds(selectedSubreddit))
     }
   }
@@ -30,14 +30,50 @@ class AsyncApp extends Component {
   }
   handleRefreshClick(e){
     e.preventDefault()
-    
+    const {selectedSubreddit,dispatch} = this.props
+    dispatch(invalidateSubreddit(selectedSubreddit))
+    dispatch(fetchPostsIfNeeds(selectedSubreddit))
   }
   render() {
+    const {posts,lastUpdated,selectedSubreddit,isFetching} = this.props
     return (
       <div>
+        <Picker value={selectedSubreddit} options={[ 'reactjs', 'frontend' ]}
+        _onChange={this.handleChange}  />
+        <p>
+          {lastUpdated && <span>
+            Last updated at {new Date(lastUpdated).toLocaleTimeString()}.
+              {' '}
+          </span>
+          }
+          {!isFetching && <a href="#" onClick={this.handleRefreshClick}>Refresh</a>}
           
+       
+          {posts.length>0 && <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+            <Posts posts={posts}/>
+          </div>}
+        </p>
+
       </div>
     );
+  }
+}
+function mapStateToProps(state) {
+  const { selectedSubreddit, postsBySubreddit } = state
+  const {
+    isFetching,
+    lastUpdated,
+    items: posts
+  } = postsBySubreddit[selectedSubreddit] || {
+    isFetching: true,
+    items: []
+  }
+
+  return {
+    selectedSubreddit,
+    posts,
+    isFetching,
+    lastUpdated
   }
 }
 AsyncApp.propTypes = {
@@ -48,4 +84,4 @@ AsyncApp.propTypes = {
   dispatch:PropTypes.func.isRequired
 }
 
-export default AsyncApp;
+export default connect(mapStateToProps)(AsyncApp)
