@@ -1,6 +1,5 @@
 import fetch from 'cross-fetch';
-import { stat } from 'fs';
- 
+
 export const REQUEST_POSTS  = 'REQUEST_POSTS'
 export const RECEIVE_POSTS = 'RECEIVE_POSTS'
 export const SELECT_SUBREDDIT = 'SELECT_SUBREDDIT'
@@ -38,9 +37,18 @@ export function receivePosts(subreddit,json){
 export function fetchPosts(subreddit){
   return dispatch => {
     dispatch(requestPosts(subreddit))
-    return fetch(`https://www.reddit.com/r/${subreddit}.json`)
-    .then(response => response.data)
-    .then(json => dispatch(receivePosts(subreddit,json)))
+    return (async () => {
+      try {
+        const res = await fetch(`https://www.reddit.com/r/${subreddit}.json`);
+        if (res.status >= 400) {
+          throw new Error("Bad response from server");
+        }
+        const user = await res.json();
+        dispatch(receivePosts(subreddit,user))
+      } catch (err) {
+        console.error(err);
+      }
+    })();
   }
 }
 export function shouldFetchPosts(state,subreddit){

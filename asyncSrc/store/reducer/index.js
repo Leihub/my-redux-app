@@ -37,6 +37,8 @@ function posts(state={
      return Object.assign({},state,{
        didInvalidate:true
      })
+     default:
+      return state
   }
 }
 

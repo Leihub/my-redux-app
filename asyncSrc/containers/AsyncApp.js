@@ -12,8 +12,8 @@ import {
 class AsyncApp extends Component {
   constructor(props){
     super(props)
-    this.handleChange.bind(this)
-    this.handleRefreshClick.bind(this)
+    this.handleChange = this.handleChange.bind(this)
+    this.handleRefreshClick = this.handleRefreshClick.bind(this)
   }
   componentDidMount(){
     const {selectedSubreddit,dispatch} = this.props
@@ -47,12 +47,13 @@ class AsyncApp extends Component {
           </span>
           }
           {!isFetching && <a href="#" onClick={this.handleRefreshClick}>Refresh</a>}
-          
-       
-          {posts.length>0 && <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-            <Posts posts={posts}/>
-          </div>}
         </p>
+        {isFetching && posts &&posts.length === 0 &&<h2>loading...</h2>}
+        {!isFetching && posts && posts.length === 0 && <h2>Empty</h2>}
+        {posts && posts.length > 0 && <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+          <Posts posts={posts} / >
+        </div>
+        }
 
       </div>
     );
@@ -78,7 +79,7 @@ function mapStateToProps(state) {
 }
 AsyncApp.propTypes = {
   selectedSubreddit:PropTypes.string.isRequired,
-  posts:PropTypes.array.isRequired,
+  posts:PropTypes.array,
   isFetching:PropTypes.bool.isRequired,
   lastUpdated:PropTypes.number,
   dispatch:PropTypes.func.isRequired
